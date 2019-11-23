@@ -33,12 +33,13 @@ def find_cycle(strain, cycle_beginning=0):
 
 def get_amplitude(column, beginning, ending):
     """
-    todo: add description
-    :param column:
-    :param stress:
-    :param beginning:
-    :param ending:
-    :return:
+    This function calculates and returns amplitude value (max value - min value)
+     of a given column on a given index interval, from beginning to ending.
+
+    :param column: np.array - given array
+    :param beginning: int - index of the interval beginning
+    :param ending: int - index of the interval ending
+    :return: float - calculated amplitude value
     """
     max_column = np.max(column[beginning:ending, 0])
     min_column = np.min(column[beginning:ending, 0])
@@ -46,40 +47,34 @@ def get_amplitude(column, beginning, ending):
     return column_ampl
 
 
-def get_period_frequency(column, beginning, ending):
+def get_mechanical_work(strain, stress, beginning, ending):
     """
-    todo: add description
-    :param column:
-    :param beginning:
-    :param ending:
-    :return:
-    """
-    period = column[ending, 0] - column[beginning, 0]
-    frequency = 1 / period
-    return period, frequency
+    This function calculates a mechanical work for one cycle of loading
+    using np.trapz function. The scope od a cycle is determined by its beginning and ending
+    with beginning and ending arguments.
 
-
-def get_mechanical_work(strain, stress, cycle_beginning, cycle_ending):
+    :param strain: np.array with shape (n, 1)
+    :param stress: np.array with shape (n, 1)
+    :param beginning: int - index of cycle beginning
+    :param ending: int - index of cycle ending
+    :return: float - result of calculating mechanical work
     """
-    todo: add description
-    :param strain:
-    :param stress:
-    :return:
-    """
-    A = np.trapz(stress[cycle_beginning:cycle_ending, 0], strain[cycle_beginning:cycle_ending, 0])
-    A = float('{:.5f}'.format(A))
-    return A
+    mechanical_work = np.trapz(stress[beginning:ending, 0], strain[beginning:ending, 0])
+    mechanical_work = float('{:.5f}'.format(mechanical_work))
+    return mechanical_work
 
 
 def build_graph(file_name, time=None, stress=None, strain=None, strain_in_percent=False):
     """
+    This function just builds graphs of stress~~strain, stress~~time and strain~~time.
+    All plots are saved in storage directory with other results.
+    All data arrays may be missing if so the building of the corresponding plot is skipped.
 
-    :param file_name:
-    :param time:
-    :param stress:
-    :param strain:
-    :param strain_in_percent:
-    :return:
+    :param file_name: str
+    :param time: array like
+    :param stress: array like
+    :param strain: array like
+    :param strain_in_percent: bool - indicates is strain will be represented in percents ot not
     """
     if strain_in_percent:
         multiplier = 100
@@ -114,6 +109,9 @@ def experiment_processing(time, strain, stress, temp, file_name, file_number):
     :param time:
     :param strain:
     :param stress:
+    :param temp:
+    :param file_name:
+    :param file_number:
     :return:
 
     Main function where all magic occur.
@@ -161,6 +159,7 @@ def experiment_processing(time, strain, stress, temp, file_name, file_number):
     f.write('\n\n' + '\t\t'.join(["mech w", 'freq', 'period']) + '\n')
     f.write('\t\t'.join(map(str, np.around([mech_work_average,frequency_average, period_average], 5))) + '\n')
     f.close()
+
 
 if __name__ == "__main__":
     data = np.loadtxt(source_path + '20_1_1.txt')
