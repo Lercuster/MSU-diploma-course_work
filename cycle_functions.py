@@ -1,13 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# todo: read raw asci file, obtian columns as variables
-# todo: find period function
-# todo: cycle integration function
-# todo: find peak value function
-# todo: find amplitude function
-# todo: graph builder function
-# todo: exp processing function
 
 source_path = "C:/Users/User/qoursuch 3.0/experiment raw data/"
 storage_path = 'C:/Users/User/qoursuch 3.0/processed data/'
@@ -38,33 +31,30 @@ def find_cycle(strain, cycle_beginning=0):
     return cycle_beginning, cycle_ending
 
 
-def get_amplitude(strain, stress, cycle_beginning, cycle_ending):
+def get_amplitude(column, beginning, ending):
     """
     todo: add description
-    :param strain:
+    :param column:
     :param stress:
-    :param cycle_beginning:
-    :param cycle_ending:
+    :param beginning:
+    :param ending:
     :return:
     """
-    max_strain = np.max(strain[cycle_beginning:cycle_ending, 0])
-    max_stress = np.max(stress[cycle_beginning:cycle_ending, 0])
-    min_strain = np.min(strain[cycle_beginning:cycle_ending, 0])
-    min_stress = np.min(stress[cycle_beginning:cycle_ending, 0])
-    strain_ampl = max_strain - min_strain
-    stress_ampl = max_stress - min_stress
-    return strain_ampl, stress_ampl
+    max_column = np.max(column[beginning:ending, 0])
+    min_column = np.min(column[beginning:ending, 0])
+    column_ampl = max_column - min_column
+    return column_ampl
 
 
-def get_period_frequency(time, cycle_beginning, cycle_ending):
+def get_period_frequency(column, beginning, ending):
     """
     todo: add description
-    :param time:
-    :param cycle_beginning:
-    :param cycle_ending:
+    :param column:
+    :param beginning:
+    :param ending:
     :return:
     """
-    period = time[cycle_ending, 0] - time[cycle_beginning, 0]
+    period = column[ending, 0] - column[beginning, 0]
     frequency = 1 / period
     return period, frequency
 
@@ -81,6 +71,43 @@ def get_mechanical_work(strain, stress, cycle_beginning, cycle_ending):
     return A
 
 
+def build_graph(file_name, time=None, stress=None, strain=None, strain_in_percent=False):
+    """
+    
+    :param file_name:
+    :param time:
+    :param stress:
+    :param strain:
+    :param strain_in_percent:
+    :return:
+    """
+    if strain_in_percent:
+        multiplier = 100
+    else:
+        multiplier = 1
+    if stress is not None and strain is not None:
+        plt.plot(strain*multiplier, stress, linewidth = 1)
+        plt.title('Зависимость напряжения от деформации.', fontsize = 16)
+        plt.xlabel('Деформация, %', fontsize = 14)
+        plt.ylabel('Напряжение, МПа', fontsize = 14)
+        plt.savefig(storage_path + file_name + '_sigma_eps.png')
+        plt.clf()
+    if strain is not None:
+        plt.plot(time, strain*multiplier, '.')
+        plt.title('Зависимость деформации от времени.', fontsize = 16)
+        plt.xlabel('Время, с', fontsize = 14)
+        plt.ylabel('Деформация, %', fontsize = 14)
+        plt.savefig(storage_path + file_name + '_time_eps.png')
+        plt.clf()
+    if stress is not None:
+        plt.plot(time, stress, '.')
+        plt.title('Зависимость напряжения от времени.', fontsize = 16)
+        plt.xlabel('Время, с', fontsize = 14)
+        plt.ylabel('Напряжение, МПа', fontsize = 14)
+        plt.savefig(storage_path + file_name + '_time_sigma.png')
+        plt.clf()
+
+
 def experiment_processing(time, strain, stress, temp):
     """
 
@@ -93,26 +120,39 @@ def experiment_processing(time, strain, stress, temp):
     Function for processing 1 experiment chunk.
     """
     num_cycles = 0
-    string_to_write = []
+    mech_work_average = frequency_average = period_average = 0
     cycle_begin, cycle_end = find_cycle(strain)
-    result_header = '\t\t'.join(["cycle num", "time start", 'time stop',
-                                 'max stress', 'strain ampl', 'stress ampl', 'period', "freq",
+    result_header = '\t\t'.join(["num", "start", 'stop',
+                                 'peak', 'SnAmpl', 'StAmpl', 'period', "freq",
                                  'temp', 'Work'])
     while True:
         cycle_begin, cycle_end = find_cycle(strain, cycle_end)
         if cycle_end == -1:
             break
+
         num_cycles += 1
         peak_stress = np.max(stress[cycle_begin:cycle_end, 0])
-        strain_ampl, stress_ampl = get_amplitude(strain, stress, cycle_begin, cycle_end)
-        period, freq = get_period_frequency(time, cycle_begin, cycle_end)
-        A = get_mechanical_work(strain, stress, cycle_begin, cycle_end)
+        strain_ampl = get_amplitude(strain, cycle_begin, cycle_end)
+        stress_ampl = get_amplitude(stress, cycle_begin, cycle_end)
+        period = time[cycle_end, 0] - time[cycle_begin, 0]
+        frequency = 1 / period
+        mech_work = get_mechanical_work(strain, stress, cycle_begin, cycle_end)
+
         string_to_write = []
         string_to_write.extend(np.around([num_cycles, time[cycle_begin, 0], time[cycle_end, 0], peak_stress,
-                                          strain_ampl, stress_ampl, period, freq, temp[cycle_begin, 0]], 3))
-        string_to_write.append(A)
+                                          strain_ampl, stress_ampl, period, frequency, temp[cycle_begin, 0]], 3))
+        mech_work_average += mech_work
+        frequency_average += frequency
+        period_average += period
+
+        string_to_write.append(mech_work)
         print(result_header)
         print('\t\t'.join(map(str, string_to_write)), '\n')
+    mech_work_average /= num_cycles
+    frequency_average /= num_cycles
+    period_average /= num_cycles
+    print('\t\t'.join(["mech w", 'freq', 'period']))
+    print('\t\t'.join(map(str, np.around([mech_work_average,frequency_average, period_average], 5))))
 
 
 if __name__ == "__main__":
@@ -122,3 +162,4 @@ if __name__ == "__main__":
     strain = data[:, 2:3]  # * strain_calibration
     stress = data[:, 3:4]  # * stress_calibration
     experiment_processing(time, strain, stress, temp)
+    build_graph("20_1_1", time, stress, strain)
