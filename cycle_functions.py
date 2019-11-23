@@ -73,7 +73,7 @@ def get_mechanical_work(strain, stress, cycle_beginning, cycle_ending):
 
 def build_graph(file_name, time=None, stress=None, strain=None, strain_in_percent=False):
     """
-    
+
     :param file_name:
     :param time:
     :param stress:
@@ -108,7 +108,7 @@ def build_graph(file_name, time=None, stress=None, strain=None, strain_in_percen
         plt.clf()
 
 
-def experiment_processing(time, strain, stress, temp):
+def experiment_processing(time, strain, stress, temp, file_name, file_number):
     """
 
     :param time:
@@ -120,11 +120,13 @@ def experiment_processing(time, strain, stress, temp):
     Function for processing 1 experiment chunk.
     """
     num_cycles = 0
-    mech_work_average = frequency_average = period_average = 0
+    mech_work_average = frequency_average = period_average = peak_stress_average = 0
     cycle_begin, cycle_end = find_cycle(strain)
-    result_header = '\t\t'.join(["num", "start", 'stop',
+    f = open(storage_path + file_name + '_' + str(file_number) + '_results.txt', 'a')
+    result_header = '\t\t'.join(["#", "start", 'stop',
                                  'peak', 'SnAmpl', 'StAmpl', 'period', "freq",
                                  'temp', 'Work'])
+    f.write(result_header + '\n')
     while True:
         cycle_begin, cycle_end = find_cycle(strain, cycle_end)
         if cycle_end == -1:
@@ -144,16 +146,21 @@ def experiment_processing(time, strain, stress, temp):
         mech_work_average += mech_work
         frequency_average += frequency
         period_average += period
+        peak_stress_average += peak_stress_average
 
         string_to_write.append(mech_work)
         print(result_header)
         print('\t\t'.join(map(str, string_to_write)), '\n')
+        f.write('\t\t'.join(map(str, string_to_write)) + '\n')
+
     mech_work_average /= num_cycles
     frequency_average /= num_cycles
     period_average /= num_cycles
-    print('\t\t'.join(["mech w", 'freq', 'period']))
-    print('\t\t'.join(map(str, np.around([mech_work_average,frequency_average, period_average], 5))))
+    peak_stress_average /= num_cycles
 
+    f.write('\n\n' + '\t\t'.join(["mech w", 'freq', 'period']) + '\n')
+    f.write('\t\t'.join(map(str, np.around([mech_work_average,frequency_average, period_average], 5))) + '\n')
+    f.close()
 
 if __name__ == "__main__":
     data = np.loadtxt(source_path + '20_1_1.txt')
@@ -161,5 +168,5 @@ if __name__ == "__main__":
     temp = data[:, 1:2]
     strain = data[:, 2:3]  # * strain_calibration
     stress = data[:, 3:4]  # * stress_calibration
-    experiment_processing(time, strain, stress, temp)
+    experiment_processing(time, strain, stress, temp, '20_1', 1)
     build_graph("20_1_1", time, stress, strain)
