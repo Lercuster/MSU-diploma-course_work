@@ -103,8 +103,19 @@ def build_graph(file_name, freq, time=None, stress=None, strain=None, strain_in_
         plt.clf()
 
 
-def write_results(data_to_write, freq, series_number):
-    f = open(storage_path + freq + '/' + freq + '_' + str(series_number) + '_results.txt', 'a')
+def write_results(data_to_write, freq, series_number, summary=False):
+    """
+
+    :param summary:
+    :param data_to_write:
+    :param freq:
+    :param series_number:
+    :return:
+    """
+    if summary:
+        f = open(storage_path + "summary/" + 'summary_' + freq + '.txt', 'a')
+    else:
+        f = open(storage_path + freq + '/' + freq + '_' + str(series_number) + '_results.txt', 'a')
     for stirng_to_write in data_to_write:
         f.write(stirng_to_write)
         f.write('\n')
@@ -114,7 +125,7 @@ def write_results(data_to_write, freq, series_number):
 def experiment_processing(time, strain, stress, temp):
     """
 
-    :param time:
+    :param time:p
     :param strain:
     :param stress:
     :param temp:
@@ -125,7 +136,8 @@ def experiment_processing(time, strain, stress, temp):
     """
     num_cycles = 0
     data_to_write = []
-    mech_work_average = frequency_average = period_average = peak_stress_average = 0
+    mech_work_average = frequency_average = period_average = \
+        peak_stress_average = temp_average = 0
     cycle_begin, cycle_end = find_cycle(strain)
     result_header = '\t\t'.join(["#", "start", 'stop',
                                  'peak', 'SnAmpl', 'StAmpl', 'period', "freq",
@@ -150,21 +162,21 @@ def experiment_processing(time, strain, stress, temp):
         mech_work_average += mech_work
         frequency_average += frequency
         period_average += period
-        peak_stress_average += peak_stress_average
+        peak_stress_average += peak_stress
+        temp_average = np.mean(temp)
 
         string_to_write.append(mech_work)
-        print(result_header)
-        print('\t\t'.join(map(str, string_to_write)), '\n')
         data_to_write.append('\t\t'.join(map(str, string_to_write)))
 
     mech_work_average /= num_cycles
     frequency_average /= num_cycles
     period_average /= num_cycles
     peak_stress_average /= num_cycles
-
+    series_summary = '\t\t'.join(map(str, np.around([peak_stress_average, mech_work_average,
+                                                     temp_average, frequency_average], 5)))
     data_to_write.append('\n\n' + '\t\t'.join(["mech w", 'freq', 'period']))
     data_to_write.append('\t\t'.join(map(str, np.around([mech_work_average,frequency_average, period_average], 5))))
-    return data_to_write
+    return data_to_write, series_summary
 
 
 if __name__ == "__main__":
