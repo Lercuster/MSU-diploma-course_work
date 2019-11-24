@@ -64,7 +64,7 @@ def get_mechanical_work(strain, stress, beginning, ending):
     return mechanical_work
 
 
-def build_graph(file_name, time=None, stress=None, strain=None, strain_in_percent=False):
+def build_graph(file_name, freq, time=None, stress=None, strain=None, strain_in_percent=False):
     """
     This function just builds graphs of stress~~strain, stress~~time and strain~~time.
     All plots are saved in storage directory with other results.
@@ -85,46 +85,52 @@ def build_graph(file_name, time=None, stress=None, strain=None, strain_in_percen
         plt.title('Зависимость напряжения от деформации.', fontsize = 16)
         plt.xlabel('Деформация, %', fontsize = 14)
         plt.ylabel('Напряжение, МПа', fontsize = 14)
-        plt.savefig(storage_path + file_name + '_sigma_eps.png')
+        plt.savefig(storage_path + freq + '/'+ file_name + '_sigma_eps.png')
         plt.clf()
     if strain is not None:
         plt.plot(time, strain*multiplier, '.')
         plt.title('Зависимость деформации от времени.', fontsize = 16)
         plt.xlabel('Время, с', fontsize = 14)
         plt.ylabel('Деформация, %', fontsize = 14)
-        plt.savefig(storage_path + file_name + '_time_eps.png')
+        plt.savefig(storage_path + freq + '/' + file_name + '_time_eps.png')
         plt.clf()
     if stress is not None:
         plt.plot(time, stress, '.')
         plt.title('Зависимость напряжения от времени.', fontsize = 16)
         plt.xlabel('Время, с', fontsize = 14)
         plt.ylabel('Напряжение, МПа', fontsize = 14)
-        plt.savefig(storage_path + file_name + '_time_sigma.png')
+        plt.savefig(storage_path + freq + '/' + file_name + '_time_sigma.png')
         plt.clf()
 
 
-def experiment_processing(time, strain, stress, temp, file_name, file_number):
+def write_results(data_to_write, freq, series_number):
+    f = open(storage_path + freq + '/' + freq + '_' + str(series_number) + '_results.txt', 'a')
+    for stirng_to_write in data_to_write:
+        f.write(stirng_to_write)
+        f.write('\n')
+    f.close()
+
+
+def experiment_processing(time, strain, stress, temp):
     """
 
     :param time:
     :param strain:
     :param stress:
     :param temp:
-    :param file_name:
-    :param file_number:
     :return:
 
     Main function where all magic occur.
     Function for processing 1 experiment chunk.
     """
     num_cycles = 0
+    data_to_write = []
     mech_work_average = frequency_average = period_average = peak_stress_average = 0
     cycle_begin, cycle_end = find_cycle(strain)
-    f = open(storage_path + file_name + '_' + str(file_number) + '_results.txt', 'a')
     result_header = '\t\t'.join(["#", "start", 'stop',
                                  'peak', 'SnAmpl', 'StAmpl', 'period', "freq",
-                                 'temp', 'Work'])
-    f.write(result_header + '\n')
+                                 'temp', 'Work', '\n'])
+    data_to_write.append(result_header)
     while True:
         cycle_begin, cycle_end = find_cycle(strain, cycle_end)
         if cycle_end == -1:
@@ -149,16 +155,16 @@ def experiment_processing(time, strain, stress, temp, file_name, file_number):
         string_to_write.append(mech_work)
         print(result_header)
         print('\t\t'.join(map(str, string_to_write)), '\n')
-        f.write('\t\t'.join(map(str, string_to_write)) + '\n')
+        data_to_write.append('\t\t'.join(map(str, string_to_write)))
 
     mech_work_average /= num_cycles
     frequency_average /= num_cycles
     period_average /= num_cycles
     peak_stress_average /= num_cycles
 
-    f.write('\n\n' + '\t\t'.join(["mech w", 'freq', 'period']) + '\n')
-    f.write('\t\t'.join(map(str, np.around([mech_work_average,frequency_average, period_average], 5))) + '\n')
-    f.close()
+    data_to_write.append('\n\n' + '\t\t'.join(["mech w", 'freq', 'period']))
+    data_to_write.append('\t\t'.join(map(str, np.around([mech_work_average,frequency_average, period_average], 5))))
+    return data_to_write
 
 
 if __name__ == "__main__":
@@ -167,5 +173,6 @@ if __name__ == "__main__":
     temp = data[:, 1:2]
     strain = data[:, 2:3]  # * strain_calibration
     stress = data[:, 3:4]  # * stress_calibration
-    experiment_processing(time, strain, stress, temp, '20_1', 1)
+    data_to_write = experiment_processing(time, strain, stress, temp, '20_1', 1)
     build_graph("20_1_1", time, stress, strain)
+    write_results(data_to_write, freq='20', series_number=1)

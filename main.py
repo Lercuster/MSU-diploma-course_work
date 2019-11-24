@@ -21,4 +21,6 @@ while True:
             temp = data[:, 1:2]
             strain = data[:, 2:3] * strain_calibration
             stress = data[:, 3:4] * stress_calibration
-
+            processed_data = cyc.experiment_processing(time, stress, strain, temp)
+            cyc.build_graph(file_name_expand, freq, time, stress, strain, strain_in_percent=True)
+            cyc.write_results(processed_data, freq, i)
