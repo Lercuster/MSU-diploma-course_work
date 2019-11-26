@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 
 source_path = "C:/Users/User/qoursuch 3.0/experiment raw data/"
@@ -64,7 +65,7 @@ def get_mechanical_work(strain, stress, beginning, ending):
     return mechanical_work
 
 
-def build_graph(file_name, freq, time=None, stress=None, strain=None, strain_in_percent=False):
+def build_series_graph(file_name, freq, time=None, stress=None, strain=None, strain_in_percent=False):
     """
     This function just builds graphs of stress~~strain, stress~~time and strain~~time.
     All plots are saved in storage directory with other results.
@@ -103,6 +104,21 @@ def build_graph(file_name, freq, time=None, stress=None, strain=None, strain_in_
         plt.clf()
 
 
+def build_summary_graph():
+    path = storage_path + 'summary/'
+    names = os.listdir(path)
+    data = []
+    i = 0
+    for experiment in names:
+        print(path + experiment)
+        data.append(np.loadtxt(path + experiment, delimiter='\t\t', dtype=np.float, skiprows=1))
+    for experiment in names:
+        plt.plot(data[i][:, 0])
+        plt.savefig(path + experiment[:-4] + 'peak_min.png')
+        plt.clf()
+        i += 1
+
+
 def write_results(data_to_write, freq, series_number, summary=False):
     """
 
@@ -114,7 +130,7 @@ def write_results(data_to_write, freq, series_number, summary=False):
     """
     if summary:
         f = open(storage_path + "summary/" + 'summary_' + freq + '.txt', 'a')
-        f.write('\t\t'.join(['peak', 'meck_work', 'temp', 'freq', '\n']))
+        f.write('\t\t'.join(['peak_st', 'meck_work', 'temperature', 'frequency', '\n\n']))
     else:
         f = open(storage_path + freq + '/' + freq + '_' + str(series_number) + '_results.txt', 'a')
     for stirng_to_write in data_to_write:
@@ -185,12 +201,4 @@ def experiment_processing(time, strain, stress, temp):
 
 
 if __name__ == "__main__":
-    data = np.loadtxt(source_path + '20_1.asc')
-    time = data[:, 0:1]
-    temp = data[:, 1:2]
-    strain = data[:, 2:3]  # * strain_calibration
-    stress = data[:, 3:4]  # * stress_calibration
-    data_to_write, summary_data = experiment_processing(time, strain, stress, temp)
-    print(summary_data)
-    write_results(data_to_write, freq='20', series_number=1)
-    write_results(summary_data, freq='20', series_number=1, summary=True)
+    build_summary_graph()

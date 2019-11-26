@@ -24,7 +24,7 @@ while True:
             stress = data[:, 3:4] * stress_calibration
             processed_data, series_summary = cyc.experiment_processing(time, strain, stress, temp)
             summary_data = np.append(summary_data, series_summary)
-            cyc.build_graph(file_name_expand, freq, time, stress, strain, strain_in_percent=True)
+            cyc.build_series_graph(file_name_expand, freq, time, stress, strain, strain_in_percent=True)
             cyc.write_results(processed_data, freq, i)
         summary_data = summary_data.reshape(6, 4)
         print(summary_data)
