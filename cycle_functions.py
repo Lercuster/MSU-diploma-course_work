@@ -154,16 +154,17 @@ def experiment_processing(time, strain, stress, temp):
         stress_ampl = get_amplitude(stress, cycle_begin, cycle_end)
         period = time[cycle_end, 0] - time[cycle_begin, 0]
         frequency = 1 / period
+        temperature = np.mean(temp[cycle_begin:cycle_end, 0])
         mech_work = get_mechanical_work(strain, stress, cycle_begin, cycle_end)
 
         string_to_write = []
         string_to_write.extend(np.around([num_cycles, time[cycle_begin, 0], time[cycle_end, 0], peak_stress,
-                                          strain_ampl, stress_ampl, period, frequency, temp[cycle_begin, 0]], 3))
+                                          strain_ampl, stress_ampl, period, frequency, temperature], 3))
         mech_work_average += mech_work
         frequency_average += frequency
         period_average += period
         peak_stress_average += peak_stress
-        temp_average = np.mean(temp)
+        temp_average += temperature
 
         string_to_write.append(mech_work)
         data_to_write.append('\t\t'.join(map(str, string_to_write)))
@@ -172,10 +173,12 @@ def experiment_processing(time, strain, stress, temp):
     frequency_average /= num_cycles
     period_average /= num_cycles
     peak_stress_average /= num_cycles
+    temp_average /= num_cycles
+
     series_summary = '\t\t'.join(map(str, np.around([peak_stress_average, mech_work_average,
                                                      temp_average, frequency_average], 5)))
     data_to_write.append('\n\n' + '\t\t'.join(["mech w", 'freq', 'period']))
-    data_to_write.append('\t\t'.join(map(str, np.around([mech_work_average,frequency_average, period_average], 5))))
+    data_to_write.append('\t\t'.join(map(str, np.around([mech_work_average, frequency_average, period_average], 5))))
     return data_to_write, series_summary
 
 
