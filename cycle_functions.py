@@ -114,10 +114,11 @@ def write_results(data_to_write, freq, series_number, summary=False):
     """
     if summary:
         f = open(storage_path + "summary/" + 'summary_' + freq + '.txt', 'a')
+        f.write('\t\t'.join(['peak', 'meck_work', 'temp', 'freq', '\n']))
     else:
         f = open(storage_path + freq + '/' + freq + '_' + str(series_number) + '_results.txt', 'a')
     for stirng_to_write in data_to_write:
-        f.write('\t\t'.join(map(str,stirng_to_write)))
+        f.write('\t\t'.join(map(str, stirng_to_write)))
         f.write('\n')
     f.close()
 
@@ -136,7 +137,7 @@ def experiment_processing(time, strain, stress, temp):
     """
     num_cycles = 0
     data_to_write = []
-    series_summary = []
+    series_summary = np.array([])
     mech_work_average = frequency_average = period_average = \
         peak_stress_average = temp_average = 0
     cycle_begin, cycle_end = find_cycle(strain)
@@ -176,7 +177,7 @@ def experiment_processing(time, strain, stress, temp):
     peak_stress_average /= num_cycles
     temp_average /= num_cycles
 
-    series_summary.extend(np.around([peak_stress_average, mech_work_average,
+    series_summary = np.append(series_summary, np.around([peak_stress_average, mech_work_average,
                                                      temp_average, frequency_average], 5))
     data_to_write.append(['\nmech w', 'freq', 'period'])
     data_to_write.append(np.around([mech_work_average, frequency_average, period_average], 5))
