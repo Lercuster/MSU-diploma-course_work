@@ -117,7 +117,7 @@ def write_results(data_to_write, freq, series_number, summary=False):
     else:
         f = open(storage_path + freq + '/' + freq + '_' + str(series_number) + '_results.txt', 'a')
     for stirng_to_write in data_to_write:
-        f.write(stirng_to_write)
+        f.write('\t\t'.join(map(str,stirng_to_write)))
         f.write('\n')
     f.close()
 
@@ -136,12 +136,13 @@ def experiment_processing(time, strain, stress, temp):
     """
     num_cycles = 0
     data_to_write = []
+    series_summary = []
     mech_work_average = frequency_average = period_average = \
         peak_stress_average = temp_average = 0
     cycle_begin, cycle_end = find_cycle(strain)
-    result_header = '\t\t'.join(["#", "start", 'stop',
+    result_header = ["#", "start", 'stop',
                                  'peak', 'SnAmpl', 'StAmpl', 'period', "freq",
-                                 'temp', 'Work', '\n'])
+                                 'temp', 'Work', '\n']
     data_to_write.append(result_header)
     while True:
         cycle_begin, cycle_end = find_cycle(strain, cycle_end)
@@ -167,7 +168,7 @@ def experiment_processing(time, strain, stress, temp):
         temp_average += temperature
 
         string_to_write.append(mech_work)
-        data_to_write.append('\t\t'.join(map(str, string_to_write)))
+        data_to_write.append(string_to_write)
 
     mech_work_average /= num_cycles
     frequency_average /= num_cycles
@@ -175,19 +176,20 @@ def experiment_processing(time, strain, stress, temp):
     peak_stress_average /= num_cycles
     temp_average /= num_cycles
 
-    series_summary = '\t\t'.join(map(str, np.around([peak_stress_average, mech_work_average,
-                                                     temp_average, frequency_average], 5)))
-    data_to_write.append('\n\n' + '\t\t'.join(["mech w", 'freq', 'period']))
-    data_to_write.append('\t\t'.join(map(str, np.around([mech_work_average, frequency_average, period_average], 5))))
+    series_summary.extend(np.around([peak_stress_average, mech_work_average,
+                                                     temp_average, frequency_average], 5))
+    data_to_write.append(['\nmech w', 'freq', 'period'])
+    data_to_write.append(np.around([mech_work_average, frequency_average, period_average], 5))
     return data_to_write, series_summary
 
 
 if __name__ == "__main__":
-    data = np.loadtxt(source_path + '20_1_1.txt')
+    data = np.loadtxt(source_path + '20_1.asc')
     time = data[:, 0:1]
     temp = data[:, 1:2]
     strain = data[:, 2:3]  # * strain_calibration
     stress = data[:, 3:4]  # * stress_calibration
-    data_to_write = experiment_processing(time, strain, stress, temp, '20_1', 1)
-    build_graph("20_1_1", time, stress, strain)
+    data_to_write, summary_data = experiment_processing(time, strain, stress, temp)
+    print(summary_data)
     write_results(data_to_write, freq='20', series_number=1)
+    write_results(summary_data, freq='20', series_number=1, summary=True)

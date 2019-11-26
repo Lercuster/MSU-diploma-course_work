@@ -10,7 +10,7 @@ stress_calibration = 1
 
 
 while True:
-    summary_data = ['\t\t'.join(['peak', 'meck_work', 'temp', 'freq'])]
+    summary_data = [['peak', 'meck_work', 'temp', 'freq']]
     freq = input("\nfrequency to process: " + str())
     if freq == "q":
         break
