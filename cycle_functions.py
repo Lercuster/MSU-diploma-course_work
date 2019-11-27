@@ -105,19 +105,39 @@ def build_series_graph(file_name, freq, time=None, stress=None, strain=None, str
 
 
 def build_summary_graph():
+    """
+    #fixme: refactor pleeeease!!
+    :return:
+    """
     path = storage_path + 'summary/'
     names = os.listdir(path)
     data = []
+    data_to_plot = []
     i = 0
     for experiment in names:
-        print(path + experiment)
         data.append(np.loadtxt(path + experiment, delimiter='\t\t', dtype=np.float, skiprows=1))
     for experiment in names:
-        plt.plot(data[i][:, 0])
-        plt.savefig(path + experiment[:-4] + 'peak_min.png')
+        plt.plot(data[i][:, 0], linewidth=1, marker='o')
+        plt.savefig(path + experiment[:-4] + '_peak_min.png')
+        plt.clf()
+        plt.plot(data[i][:, 1], linewidth=1, marker='o')
+        plt.savefig(path + experiment[:-4] + '_mech_work_min.png')
+        plt.clf()
+        plt.plot(data[i][:, 2], linewidth=1, marker='o')
+        plt.savefig(path + experiment[:-4] + '_temperature_min.png')
         plt.clf()
         i += 1
-
+    i = 0
+    data_to_plot = []
+    for experiment in names:
+        for j in range(len(data[0][:, 0])):
+            data_to_plot.append(data[i])
+        i += 1
+    data_to_plot = np.array(data_to_plot)
+    for i in range(len(data_to_plot[0, :, 0])):
+        plt.plot(data_to_plot[:, i, 3], (-1)*data_to_plot[:, i, 1], linewidth=1, marker='o')
+        plt.savefig(path + 'Mech work vs freq for ' + str(i) + ' min.png')
+        plt.clf()
 
 def write_results(data_to_write, freq, series_number, summary=False):
     """
