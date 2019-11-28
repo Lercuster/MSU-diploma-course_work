@@ -112,32 +112,57 @@ def build_summary_graph():
     path = storage_path + 'summary/'
     names = os.listdir(path)
     data = []
-    data_to_plot = []
+    names_txt = []
     i = 0
     for experiment in names:
-        data.append(np.loadtxt(path + experiment, delimiter='\t\t', dtype=np.float, skiprows=1))
-    for experiment in names:
-        plt.plot(data[i][:, 0], linewidth=1, marker='o')
-        plt.savefig(path + experiment[:-4] + '_peak_min.png')
-        plt.clf()
-        plt.plot(data[i][:, 1], linewidth=1, marker='o')
-        plt.savefig(path + experiment[:-4] + '_mech_work_min.png')
-        plt.clf()
-        plt.plot(data[i][:, 2], linewidth=1, marker='o')
-        plt.savefig(path + experiment[:-4] + '_temperature_min.png')
-        plt.clf()
+        if '.txt' in experiment:
+            data.append(np.loadtxt(path + experiment, delimiter='\t\t', dtype=np.float, skiprows=1))
+            names_txt.append(experiment)
+    for experiment in names_txt:
+        plt.plot(data[i][:, 0], linewidth=1, marker='o', label=experiment[8:10])
+        plt.xlabel('Minute', fontsize=14)
+        plt.ylabel('Peak Stress, MPa', fontsize=14)
+        plt.title('Plot of Average Peak Stress for each minute.', fontsize=16)
+        plt.legend(fontsize=10)
         i += 1
+    plt.savefig(path + 'mummary' + '_peak_min.png')
+    plt.clf()
+    i = 0
+    for experiment in names_txt:
+        plt.plot(data[i][:, 1], linewidth=1, marker='o', label=experiment[8:11])
+        plt.xlabel('Minute', fontsize=14)
+        plt.ylabel('Mechanical Work', fontsize=14)
+        plt.title('Plot of Average Mechanical Work for each minute.', fontsize=16)
+        plt.legend(fontsize=10)
+        i += 1
+    plt.savefig(path + 'mummary' + '_mech_work_min.png')
+    plt.clf()
+    i = 0
+    for experiment in names_txt:
+        plt.plot(data[i][:, 2], linewidth=1, marker='o', label=experiment[8:11])
+        plt.xlabel('Minute', fontsize=14)
+        plt.ylabel('Temperature, *C', fontsize=14)
+        plt.legend(fontsize=10)
+        plt.title('Plot of Temperature for each minute.', fontsize=16)
+        i += 1
+    plt.savefig(path + 'mummary' + '_temperature_min.png')
+    plt.clf()
     i = 0
     data_to_plot = []
-    for experiment in names:
-        for j in range(len(data[0][:, 0])):
-            data_to_plot.append(data[i])
+    for experiment in names_txt:
+        data_to_plot.append(data[i])
         i += 1
     data_to_plot = np.array(data_to_plot)
     for i in range(len(data_to_plot[0, :, 0])):
         plt.plot(data_to_plot[:, i, 3], (-1)*data_to_plot[:, i, 1], linewidth=1, marker='o')
         plt.savefig(path + 'Mech work vs freq for ' + str(i) + ' min.png')
         plt.clf()
+    plt.plot(data_to_plot[3:, :, 3], (-1)*data_to_plot[3:, :, 1], linewidth=1, marker='o', label=experiment[8:11])
+    plt.legend([0, 1, 2, 3, 4, 5], fontsize=10)
+    plt.savefig(path + 'Mech work vs freq ' + '.png')
+    plt.clf()
+    print(data_to_plot)
+
 
 def write_results(data_to_write, freq, series_number, summary=False):
     """
@@ -153,8 +178,8 @@ def write_results(data_to_write, freq, series_number, summary=False):
         f.write('\t\t'.join(['peak_st', 'meck_work', 'temperature', 'frequency', '\n\n']))
     else:
         f = open(storage_path + freq + '/' + freq + '_' + str(series_number) + '_results.txt', 'a')
-    for stirng_to_write in data_to_write:
-        f.write('\t\t'.join(map(str, stirng_to_write)))
+    for string_to_write in data_to_write:
+        f.write('\t\t'.join(map(str, string_to_write)))
         f.write('\n')
     f.close()
 

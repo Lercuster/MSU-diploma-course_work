@@ -27,5 +27,5 @@ while True:
             cyc.build_series_graph(file_name_expand, freq, time, stress, strain, strain_in_percent=True)
             cyc.write_results(processed_data, freq, i)
         summary_data = summary_data.reshape(6, 4)
-        print(summary_data)
         cyc.write_results(summary_data, freq, '0', True)
+cyc.build_summary_graph()
