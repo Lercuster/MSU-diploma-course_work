@@ -104,7 +104,32 @@ def build_series_graph(file_name, freq, time=None, stress=None, strain=None, str
         plt.clf()
 
 
-def build_summary_graph():
+def build_summary_graph(data, names, variable='', xlab='', ylab='', title=''):
+    """
+    This function builds a summary graph variable VS minute for each frequency for given values.
+    :param data:
+    :param variable:
+    :param xlab:
+    :param ylab:
+    :param title:
+    :param names:
+    :return:
+    """
+    i = 0
+    path = storage_path + 'summary/'
+    types = {'peak':0, 'mechwork':1, 'temp':2}
+    for experiment in names:
+        plt.plot(data[i, :, types[variable]], linewidth=1, marker='o', label=experiment[8:10])
+        plt.xlabel(xlab, fontsize=14)
+        plt.ylabel(ylab, fontsize=14)
+        plt.title(title, fontsize=16)
+        plt.legend(fontsize=10)
+        i += 1
+    plt.savefig(path + 'mummary' + '_' + variable + '_min.png')
+    plt.clf()
+
+
+def summary_graph_constructor():
     """
     #fixme: refactor pleeeease!!
     :return:
@@ -114,54 +139,46 @@ def build_summary_graph():
     data = []
     names_txt = []
     i = 0
+    # reading file names and summary data from summary folder
+    # data: array of arrays for each summary file
     for experiment in names:
         if '.txt' in experiment:
             data.append(np.loadtxt(path + experiment, delimiter='\t\t', dtype=np.float, skiprows=1))
             names_txt.append(experiment)
-    for experiment in names_txt:
-        plt.plot(data[i][:, 0], linewidth=1, marker='o', label=experiment[8:10])
-        plt.xlabel('Minute', fontsize=14)
-        plt.ylabel('Peak Stress, MPa', fontsize=14)
-        plt.title('Plot of Average Peak Stress for each minute.', fontsize=16)
-        plt.legend(fontsize=10)
-        i += 1
-    plt.savefig(path + 'mummary' + '_peak_min.png')
-    plt.clf()
-    i = 0
-    for experiment in names_txt:
-        plt.plot(data[i][:, 1], linewidth=1, marker='o', label=experiment[8:11])
-        plt.xlabel('Minute', fontsize=14)
+    data = np.array(data)
+
+    # building plots of peak, mech work and temp VS minute for each summary file
+    xlab = 'Minute'
+    ylab = 'Peak Stress, MPa'
+    title = 'Plot for Average Peak Stress for each minute.'
+    build_summary_graph(data, variable='peak', xlab=xlab, ylab=ylab, title=title, names=names_txt)
+    ylab = 'Mechanical Work'
+    title = 'Plot for Average Mechanical Work for each minute.'
+    build_summary_graph(data, variable='mechwork', xlab=xlab, ylab=ylab, title=title, names=names_txt)
+    ylab = 'Temperature, *C'
+    title = 'Plot For Average Temperature for each minute.'
+    build_summary_graph(data, variable='temp', xlab=xlab, ylab=ylab, title=title, names=names_txt)
+
+    # building mech work VS freq for each minute
+    for i in range(len(data[0, :, 0])):
+        plt.plot(data[:, i, 3], (-1)*data[:, i, 1], linewidth=1, marker='o')
+        plt.xlabel('Frequency, Hz', fontsize=14)
         plt.ylabel('Mechanical Work', fontsize=14)
-        plt.title('Plot of Average Mechanical Work for each minute.', fontsize=16)
-        plt.legend(fontsize=10)
-        i += 1
-    plt.savefig(path + 'mummary' + '_mech_work_min.png')
-    plt.clf()
-    i = 0
-    for experiment in names_txt:
-        plt.plot(data[i][:, 2], linewidth=1, marker='o', label=experiment[8:11])
-        plt.xlabel('Minute', fontsize=14)
-        plt.ylabel('Temperature, *C', fontsize=14)
-        plt.legend(fontsize=10)
-        plt.title('Plot of Temperature for each minute.', fontsize=16)
-        i += 1
-    plt.savefig(path + 'mummary' + '_temperature_min.png')
-    plt.clf()
-    i = 0
-    data_to_plot = []
-    for experiment in names_txt:
-        data_to_plot.append(data[i])
-        i += 1
-    data_to_plot = np.array(data_to_plot)
-    for i in range(len(data_to_plot[0, :, 0])):
-        plt.plot(data_to_plot[:, i, 3], (-1)*data_to_plot[:, i, 1], linewidth=1, marker='o')
+        plt.title('Plot for Mechanical Work versus Frequency.', fontsize=16)
         plt.savefig(path + 'Mech work vs freq for ' + str(i) + ' min.png')
         plt.clf()
-    plt.plot(data_to_plot[3:, :, 3], (-1)*data_to_plot[3:, :, 1], linewidth=1, marker='o', label=experiment[8:11])
+
+    # building mech work VS freq for each min on one plot with dropping some points
+    points_to_drop = [0, 1, 2]
+    points = np.linspace(0, len(data[:]), num=len(data[:]), endpoint=False, dtype=np.int)
+    points = list(set(points) - set(points_to_drop))
+    plt.plot(data[points, :, 3], (-1)*data[points, :, 1], linewidth=1, marker='o')
+    plt.xlabel('Frequency, Hz', fontsize=14)
+    plt.ylabel('Mechanical Work', fontsize=14)
+    plt.title('Plot for Mechanical Work versus Frequency.', fontsize=16)
     plt.legend([0, 1, 2, 3, 4, 5], fontsize=10)
     plt.savefig(path + 'Mech work vs freq ' + '.png')
     plt.clf()
-    print(data_to_plot)
 
 
 def write_results(data_to_write, freq, series_number, summary=False):
@@ -246,4 +263,4 @@ def experiment_processing(time, strain, stress, temp):
 
 
 if __name__ == "__main__":
-    build_summary_graph()
+    summary_graph_constructor()
