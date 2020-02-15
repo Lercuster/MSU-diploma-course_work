@@ -3,14 +3,27 @@ import matplotlib.pyplot as plt
 import os
 
 
-source_path = "C:/Users/User/qoursuch 3.0/experiment raw data/"
-storage_path = 'C:/Users/User/qoursuch 3.0/processed data/'
+SOURCE_PATH = "C:/Users/User/qoursuch 3.0/experiment raw data/"
+STORAGE_PATH = 'C:/Users/User/qoursuch 3.0/processed data/'
+
+
+def drop_commas(path):
+    names = os.listdir(path)
+    for name in names:
+        if '.ASC' in name:
+            f = open(path + name)
+            f_new = open(path + name[:-4] + '.txt', 'a')
+            for line in f.readlines():
+                nline = line.replace(',', '.')
+                f_new.write(nline)
+            f.close()
+            f_new.close()
+            os.remove(path + name)
 
 
 def read_file_raw(file_name: str):
-    # todo: add description
     try:
-        data = np.loadtxt(source_path + file_name + ".asc", delimiter="\t", dtype=np.float)
+        data = np.loadtxt(SOURCE_PATH + file_name + ".txt", delimiter="\t", dtype=np.float)
         return data
     except OSError:
         print('sorry no such file')
@@ -62,7 +75,7 @@ def get_mechanical_work(strain, stress, beginning, ending):
     """
     mechanical_work = np.trapz(stress[beginning:ending, 0], strain[beginning:ending, 0])
     mechanical_work = float('{:.5f}'.format(mechanical_work))
-    return mechanical_work
+    return abs(mechanical_work)
 
 
 def build_series_graph(file_name, freq, time=None, stress=None, strain=None, strain_in_percent=False):
@@ -85,22 +98,22 @@ def build_series_graph(file_name, freq, time=None, stress=None, strain=None, str
         plt.plot(strain*multiplier, stress, linewidth = 1)
         plt.title('Зависимость напряжения от деформации.', fontsize = 16)
         plt.xlabel('Деформация, %', fontsize = 14)
-        plt.ylabel('Напряжение, МПа', fontsize = 14)
-        plt.savefig(storage_path + freq + '/'+ file_name + '_sigma_eps.png')
+        plt.ylabel('Напряжение (сила), кг', fontsize = 14)
+        plt.savefig(STORAGE_PATH + freq + '/' + file_name + '_sigma_eps.png')
         plt.clf()
     if strain is not None:
         plt.plot(time, strain*multiplier, '.')
         plt.title('Зависимость деформации от времени.', fontsize = 16)
         plt.xlabel('Время, с', fontsize = 14)
         plt.ylabel('Деформация, %', fontsize = 14)
-        plt.savefig(storage_path + freq + '/' + file_name + '_time_eps.png')
+        plt.savefig(STORAGE_PATH + freq + '/' + file_name + '_time_eps.png')
         plt.clf()
     if stress is not None:
         plt.plot(time, stress, '.')
         plt.title('Зависимость напряжения от времени.', fontsize = 16)
         plt.xlabel('Время, с', fontsize = 14)
-        plt.ylabel('Напряжение, МПа', fontsize = 14)
-        plt.savefig(storage_path + freq + '/' + file_name + '_time_sigma.png')
+        plt.ylabel('Напряжение (сила), кг', fontsize = 14)
+        plt.savefig(STORAGE_PATH + freq + '/' + file_name + '_time_sigma.png')
         plt.clf()
 
 
@@ -116,7 +129,7 @@ def build_summary_graph(data, names, variable='', xlab='', ylab='', title=''):
     :return:
     """
     i = 0
-    path = storage_path + 'summary/'
+    path = STORAGE_PATH + 'summary/'
     types = {'peak':0, 'mechwork':1, 'temp':2}
     for experiment in names:
         plt.plot(data[i, :, types[variable]], linewidth=1, marker='o', label=experiment[8:10])
@@ -129,12 +142,10 @@ def build_summary_graph(data, names, variable='', xlab='', ylab='', title=''):
     plt.clf()
 
 
-def summary_graph_constructor():
+def summary_graph_constructor(points_to_drop=[]):
     """
-    #fixme: refactor pleeeease!!
-    :return:
     """
-    path = storage_path + 'summary/'
+    path = STORAGE_PATH + 'summary/'
     names = os.listdir(path)
     data = []
     names_txt = []
@@ -149,7 +160,7 @@ def summary_graph_constructor():
 
     # building plots of peak, mech work and temp VS minute for each summary file
     xlab = 'Minute'
-    ylab = 'Peak Stress, MPa'
+    ylab = 'Peak Stress (force), kg'
     title = 'Plot for Average Peak Stress for each minute.'
     build_summary_graph(data, variable='peak', xlab=xlab, ylab=ylab, title=title, names=names_txt)
     ylab = 'Mechanical Work'
@@ -161,7 +172,7 @@ def summary_graph_constructor():
 
     # building mech work VS freq for each minute
     for i in range(len(data[0, :, 0])):
-        plt.plot(data[:, i, 3], (-1)*data[:, i, 1], linewidth=1, marker='o')
+        plt.plot(data[:, i, 3], data[:, i, 1], linewidth=1, marker='o')
         plt.xlabel('Frequency, Hz', fontsize=14)
         plt.ylabel('Mechanical Work', fontsize=14)
         plt.title('Plot for Mechanical Work versus Frequency.', fontsize=16)
@@ -169,14 +180,13 @@ def summary_graph_constructor():
         plt.clf()
 
     # building mech work VS freq for each min on one plot with dropping some points
-    points_to_drop = [0, 1, 2]
     points = np.linspace(0, len(data[:]), num=len(data[:]), endpoint=False, dtype=np.int)
     points = list(set(points) - set(points_to_drop))
-    plt.plot(data[points, :, 3], (-1)*data[points, :, 1], linewidth=1, marker='o')
+    plt.plot(data[points, :, 3], data[points, :, 1], linewidth=1, marker='o')
     plt.xlabel('Frequency, Hz', fontsize=14)
     plt.ylabel('Mechanical Work', fontsize=14)
     plt.title('Plot for Mechanical Work versus Frequency.', fontsize=16)
-    plt.legend([0, 1, 2, 3, 4, 5], fontsize=10)
+    plt.legend([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], fontsize=10)
     plt.savefig(path + 'Mech work vs freq ' + '.png')
     plt.clf()
 
@@ -191,10 +201,10 @@ def write_results(data_to_write, freq, series_number, summary=False):
     :return:
     """
     if summary:
-        f = open(storage_path + "summary/" + 'summary_' + freq + '.txt', 'a')
+        f = open(STORAGE_PATH + "summary/" + 'summary_' + freq + '.txt', 'a')
         f.write('\t\t'.join(['peak_st', 'meck_work', 'temperature', 'frequency', '\n\n']))
     else:
-        f = open(storage_path + freq + '/' + freq + '_' + str(series_number) + '_results.txt', 'a')
+        f = open(STORAGE_PATH + freq + '/' + freq + '_' + str(series_number) + '_results.txt', 'a')
     for string_to_write in data_to_write:
         f.write('\t\t'.join(map(str, string_to_write)))
         f.write('\n')
@@ -263,4 +273,5 @@ def experiment_processing(time, strain, stress, temp):
 
 
 if __name__ == "__main__":
-    summary_graph_constructor()
+    #drop_commas(SOURCE_PATH)
+    summary_graph_constructor([8])
