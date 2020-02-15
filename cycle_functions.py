@@ -211,6 +211,34 @@ def write_results(data_to_write, freq, series_number, summary=False):
     f.close()
 
 
+def mean_mech_work(path, min_to_drop = []):
+    min = np.linspace(0, 10, num=10, endpoint=False, dtype=np.int)
+    min = list(set(min) - set(min_to_drop))
+    names = os.listdir(path)
+    data_new = []
+    for f in names:
+        if '.txt' in f:
+            data = np.loadtxt(path + f, delimiter='\t\t', dtype=np.float, skiprows=1)
+            data_new.append(np.mean(data[min, 1]))
+    return np.array(data_new)
+
+
+def from_rubber_to_cord_formula(angle, data_rubber, gamma=0.89):
+    data_rubber_cord = data_rubber * (1 - 3*np.sin(angle)**2*np.cos(angle)**2) / (np.sin(angle)**4) * 4 / (3*gamma)
+    return data_rubber_cord
+
+
+def error_calc(data1, data2, in_percent=True):
+    error = []
+    for i in range(len(data1)):
+        e = (data2[i] - data1[i]) / data1[i]
+        if in_percent:
+            e *= 100
+        error.append(np.round(e, 2))
+    return error
+
+
+
 def experiment_processing(time, strain, stress, temp):
     """
 

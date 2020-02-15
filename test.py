@@ -22,4 +22,4 @@ for name in names:
         plt.clf()
 '''
 
-print(2 ** 100)
+print(np.linspace(0, 10, num=10, endpoint=False, dtype=np.int))
