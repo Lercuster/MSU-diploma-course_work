@@ -3,13 +3,13 @@ import cycle_functions as cyc
 import matplotlib.pyplot as plt
 
 path = 'C:/Users/user/qoursuch 3.0/experiments/rubber with temp control (4%)/results/summary/'
-data_rubber = cyc.mean_mech_work(path, [1])
+data_rubber = cyc.mean_summary_value(path, [1])
 
 path = 'C:/Users/user/qoursuch 3.0/experiments/rubber cord 60 deg with temp control (4%)/results/summary/'
-data_cord_1 = cyc.mean_mech_work(path, [1])
+data_cord_1 = cyc.mean_summary_value(path, [1])
 
 path = 'C:/Users/user/qoursuch 3.0/experiments/rubber cord 45 deg with temp control (4%)/results/summary/'
-data_cord_2 = cyc.mean_mech_work(path, [1])
+data_cord_2 = cyc.mean_summary_value(path, [1])
 
 data_rubber_cord_1 = cyc.from_rubber_to_cord_formula(np.pi/3, data_rubber)
 data_rubber_cord_2 = cyc.from_rubber_to_cord_formula(np.pi/4, data_rubber)
@@ -17,7 +17,6 @@ data_rubber_cord_2 = cyc.from_rubber_to_cord_formula(np.pi/4, data_rubber)
 f = open(cyc.STORAGE_PATH + 'error 4 %.txt', 'a')
 f.write('60 deg\n')
 error = cyc.error_calc(data_rubber_cord_1, data_cord_1)
-print(error)
 f.write('\t'.join(map(str, error)))
 f.write('\n45 deg\n')
 error = cyc.error_calc(data_rubber_cord_2, data_cord_2)

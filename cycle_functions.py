@@ -97,8 +97,8 @@ def build_series_graph(file_name, freq, time=None, stress=None, strain=None, str
     if stress is not None and strain is not None:
         plt.plot(strain*multiplier, stress, linewidth = 1)
         plt.title('Зависимость напряжения от деформации.', fontsize = 16)
-        plt.xlabel('Деформация, %', fontsize = 14)
-        plt.ylabel('Напряжение (сила), кг', fontsize = 14)
+        plt.xlabel('Деформация', fontsize = 14)
+        plt.ylabel('Напряжение МПа', fontsize = 14)
         plt.savefig(STORAGE_PATH + freq + '/' + file_name + '_sigma_eps.png')
         plt.clf()
     if strain is not None:
@@ -112,7 +112,7 @@ def build_series_graph(file_name, freq, time=None, stress=None, strain=None, str
         plt.plot(time, stress, '.')
         plt.title('Зависимость напряжения от времени.', fontsize = 16)
         plt.xlabel('Время, с', fontsize = 14)
-        plt.ylabel('Напряжение (сила), кг', fontsize = 14)
+        plt.ylabel('Напряжение, МПа', fontsize = 14)
         plt.savefig(STORAGE_PATH + freq + '/' + file_name + '_time_sigma.png')
         plt.clf()
 
@@ -160,7 +160,7 @@ def summary_graph_constructor(points_to_drop=[]):
 
     # building plots of peak, mech work and temp VS minute for each summary file
     xlab = 'Minute'
-    ylab = 'Peak Stress (force), kg'
+    ylab = 'Peak Stress, Mpa'
     title = 'Plot for Average Peak Stress for each minute.'
     build_summary_graph(data, variable='peak', xlab=xlab, ylab=ylab, title=title, names=names_txt)
     ylab = 'Mechanical Work'
@@ -172,8 +172,8 @@ def summary_graph_constructor(points_to_drop=[]):
 
     # building mech work VS freq for each minute
     for i in range(len(data[0, :, 0])):
-        plt.plot(data[:, i, 3], data[:, i, 1], linewidth=1, marker='o')
-        plt.xlabel('Frequency, Hz', fontsize=14)
+        plt.plot(data[:, i, 3]* 2 * np.pi, data[:, i, 1], linewidth=1, marker='o')
+        plt.xlabel('Frequency', fontsize=14)
         plt.ylabel('Mechanical Work', fontsize=14)
         plt.title('Plot for Mechanical Work versus Frequency.', fontsize=16)
         plt.savefig(path + 'Mech work vs freq for ' + str(i) + ' min.png')
@@ -182,7 +182,7 @@ def summary_graph_constructor(points_to_drop=[]):
     # building mech work VS freq for each min on one plot with dropping some points
     points = np.linspace(0, len(data[:]), num=len(data[:]), endpoint=False, dtype=np.int)
     points = list(set(points) - set(points_to_drop))
-    plt.plot(data[points, :, 3], data[points, :, 1], linewidth=1, marker='o')
+    plt.plot(data[points, :, 3] * 2 * np.pi, data[points, :, 1], linewidth=1, marker='o')
     plt.xlabel('Frequency, Hz', fontsize=14)
     plt.ylabel('Mechanical Work', fontsize=14)
     plt.title('Plot for Mechanical Work versus Frequency.', fontsize=16)
@@ -211,7 +211,7 @@ def write_results(data_to_write, freq, series_number, summary=False):
     f.close()
 
 
-def mean_mech_work(path, min_to_drop = []):
+def mean_summary_value(path, min_to_drop = [], col=1):
     min = np.linspace(0, 10, num=10, endpoint=False, dtype=np.int)
     min = list(set(min) - set(min_to_drop))
     names = os.listdir(path)
@@ -219,7 +219,7 @@ def mean_mech_work(path, min_to_drop = []):
     for f in names:
         if '.txt' in f:
             data = np.loadtxt(path + f, delimiter='\t\t', dtype=np.float, skiprows=1)
-            data_new.append(np.mean(data[min, 1]))
+            data_new.append(np.round(np.mean(data[min, col]), 5))
     return np.array(data_new)
 
 
