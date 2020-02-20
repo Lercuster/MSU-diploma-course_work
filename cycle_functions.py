@@ -238,6 +238,33 @@ def error_calc(data1, data2, in_percent=True):
     return error
 
 
+def relation_f(time, params, elnum=3):
+    """
+
+    :param time:
+    :param params: [ti, ci]
+    :param elnum: number ef Maxwell elements
+    :return:
+    """
+    res = 0
+    for i in range(elnum):
+        res += params[elnum + i] * np.exp(-time/params[i])
+    return res
+
+
+def mech_work_approximation(w, params, elnum=3):
+    res = 0
+    for i in range(elnum):
+        res += params[elnum + i]**2 *params[i] * w / ((params[i]*w)**2 + 1)
+    return res * np.pi *(0.011)**2
+
+
+def get_relaxation_f(time, params, elnum=3):
+    relax = []
+    for t in time:
+        relax.append(relation_f(t, params, elnum))
+    return relax
+
 
 def experiment_processing(time, strain, stress, temp):
     """

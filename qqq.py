@@ -2,9 +2,14 @@ import numpy as np
 import cycle_functions as cyc
 import matplotlib.pyplot as plt
 
+"""
+rubber with temp control (2%)
+rubber cord 60 deg with temp control (4%)
+"""
 
-path = 'C:/Users/user/qoursuch 3.0/experiments/rubber cord 60 deg with temp control (4%)/results/summary/'
-pathh = 'C:/Users/user/qoursuch 3.0/experiments/rubber cord 60 deg with temp control (4%)/maxwell/'
+
+path = 'C:/Users/user/qoursuch 3.0/experiments/rubber with temp control (4%)/results/summary/'
+pathh = 'C:/Users/user/qoursuch 3.0/experiments/rubber with temp control (4%)/maxwell/'
 work = cyc.mean_summary_value(path, [1], 1)
 freq = cyc.mean_summary_value(path, [1], 3) * 2 * np.pi
 
