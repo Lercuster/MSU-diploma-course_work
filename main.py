@@ -2,7 +2,7 @@ import numpy as np
 import cycle_functions as cyc
 
 NUM_EXPERIMENTS = 10
-STRAIN_CALIBRATION = 1 / 243.8
+STRAIN_CALIBRATION = 1 / 242.9
 STRESS_CALIBRATION = 9.8 / (2 * 80) # KG -> MPa
 
 cyc.drop_commas(cyc.SOURCE_PATH)

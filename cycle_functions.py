@@ -263,7 +263,7 @@ def get_relaxation_f(time, params, elnum=3):
     relax = []
     for t in time:
         relax.append(relation_f(t, params, elnum))
-    return relax
+    return np.array(relax)
 
 
 def experiment_processing(time, strain, stress, temp):
