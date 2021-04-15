@@ -1,10 +1,6 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import cycle_functions as cyc
-import os
 
-p = [1.1, 2.2, 3.3]
+a = [1, 2, 3]
+a = list(map(str, a))
 
-a = p * 0.5
-
-print(a)
+print(a + 'asdsa')

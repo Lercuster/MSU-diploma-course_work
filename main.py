@@ -2,7 +2,7 @@ import numpy as np
 import cycle_functions as cyc
 
 NUM_EXPERIMENTS = 10
-STRAIN_CALIBRATION = 1 / 242.9
+STRAIN_CALIBRATION = 1 / 237.2
 STRESS_CALIBRATION = 9.8 / (2 * 80) # KG -> MPa
 
 cyc.drop_commas(cyc.SOURCE_PATH)
@@ -29,4 +29,9 @@ while True:
         summary_data = summary_data.reshape(NUM_EXPERIMENTS, 4)
         cyc.write_results(summary_data, freq, '0', True)
         print('=========================== Done! ===========================')
-cyc.summary_graph_constructor()
+cyc.summary_graph_constructor(points_to_drop=[6],
+                              freqs_stress_to_drop=[],
+                              freqs_temp_to_drop=[],
+                              freqs_work_to_drop=[],
+                              minute_to_drop=[0])
+

@@ -2,54 +2,63 @@ import numpy as np
 import cycle_functions as cyc
 import matplotlib.pyplot as plt
 
-pathh = 'D:/qoursuch 3.0/experiments/rubber cord 90 deg with temp control (2%)/maxwell/dotted/'
-relax = []
-time = np.linspace(0, 1, 1001)
+pathh = 'D:/qoursuch 3.0/experiments/rubber cord 45 deg with temp control (2%)/maxwell/dotted/'
+time = np.linspace(0, 0.3, 1001)
+error = []
 
 params_2exp = [0.000526,
-               0.02866,
-               11.91735 ** 2,
-               4.06837 ** 2]
+ 0.02866,
+ 11.91735**2,
+ 4.06837**2]
 
-params_3exp = [0.0001959,
-               0.0001959,
-               0.03674,
-               17.66417 ** 2,
-               17.66474 ** 2,
-               4.62921 ** 2]
+params_3exp = [0.0004594,
+ 0.02863,
+ 0.000454,
+ 9.1137**2,
+ 4.06916**2,
+ 8.97488**2]
 
 params_3exp_Ti_from_rubber = [0.00458,
-                              0.00458,
-                              0.03953,
-                              4.05721 ** 2,
-                              4.05721 ** 2,
-                              4.45203 ** 2]
+ 0.00458,
+ 0.03953,
+ 3.46322**2,
+ 3.46322**2,
+ 3.90908**2]
 
 params_2exp_Ti_from_rubber = [0.00458,
-                              0.03953,
-                              4.89774 ** 2,
-                              3.90908 ** 2]
+ 0.03953,
+ 4.89774**2,
+ 3.90908**2]
 
-relax_3_exp_Ti_from_rubber = cyc.get_relaxation_f(time, params_3exp_Ti_from_rubber, 3)
-relax_3_exp = cyc.get_relaxation_f(time, params_3exp, 3)
-relax_2_exp = cyc.get_relaxation_f(time, params_2exp, 2)
-relax_2_exp_Ti_from_rubber = cyc.get_relaxation_f(time, params_2exp_Ti_from_rubber, 2)
 
+relax_3_exp_Ti_from_rubber = cyc.get_relaxation_f(time, params_3exp_Ti_from_rubber,
+                                                  elnum=len(params_3exp_Ti_from_rubber) // 2)
+relax_3_exp = cyc.get_relaxation_f(time, params_3exp, elnum=len(params_3exp) // 2)
+relax_2_exp = cyc.get_relaxation_f(time, params_2exp, elnum=len(params_2exp) // 2)
+relax_2_exp_Ti_from_rubber = cyc.get_relaxation_f(time, params_2exp_Ti_from_rubber,
+                                                  elnum=len(params_2exp_Ti_from_rubber) // 2)
+
+
+
+n = 5
+k = 5
+l = 10
 j = 10
-n = 1
-k = 10
-l = 1
 
-step = 20
-plt.plot(time[n::step], relax_3_exp_Ti_from_rubber[n::step], linewidth=0.3,
-         label='Approximation with 3 exp, t from rubber', marker='.')
-plt.plot(time[k::step], relax_3_exp[k::step], linewidth=0.3, marker='.', label='Approximation with 3 exp')
-# plt.plot(time[l::step], relax_2_exp[l::step], linewidth=0.3, marker='.', label='Approximation with 2 exp')
-# plt.plot(time[j::step], relax_2_exp_Ti_from_rubber[j::step], linewidth=0.3, marker='.',
-#         label='Approximation with 2 exp, t from rubber')
+step_1 = 20
+step_2 = 30
+step_3 = 25
 
-plt.xlabel('time, s', fontsize=14)
-plt.ylabel('Relaxation Function', fontsize=14)
-plt.legend(fontsize=12)
-# plt.show()
-plt.savefig(pathh + 'relaxations_dotted.png')
+#plt.plot(time[n::step_3], relax_3_exp_Ti_from_rubber[n::step_3], linewidth=0,
+ #       label='N = 3, t_n для резины', marker='o', color='black')
+plt.plot(time[k::step_1], relax_3_exp[k::step_1], linewidth=0, marker='X', label='N = 3', color='black')
+plt.plot(time[l::step_2], relax_2_exp[l::step_2], linewidth=0, marker='d', label='N = 2', color='black')
+#plt.plot(time[j::step_1], relax_2_exp_Ti_from_rubber[j::step_1], linewidth=0, marker='v',
+ #      label='Аппроксимация 2 эксп, время из резины', color='black')
+
+plt.xlabel('Время (сек)', fontsize=14)
+plt.ylabel('Функция релаксации', fontsize=14)
+plt.legend(fontsize=10)
+plt.show()
+# plt.savefig(pathh + 'relaxations_dotted start segment.png')
+plt.clf()

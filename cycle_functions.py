@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import os
 
 
-SOURCE_PATH = "C:/Users/User/qoursuch 3.0/experiment raw data/"
-STORAGE_PATH = 'C:/Users/User/qoursuch 3.0/processed data/'
+SOURCE_PATH = "D:/qoursuch 3.0/experiment raw data/"
+STORAGE_PATH = 'D:/qoursuch 3.0/processed data/'
 
 
 def drop_commas(path):
@@ -74,7 +74,7 @@ def get_mechanical_work(strain, stress, beginning, ending):
     :return: float - result of calculating mechanical work
     """
     mechanical_work = np.trapz(stress[beginning:ending, 0], strain[beginning:ending, 0])
-    mechanical_work = float('{:.5f}'.format(mechanical_work))
+    mechanical_work = float('{:.7f}'.format(mechanical_work))
     return abs(mechanical_work)
 
 
@@ -117,7 +117,7 @@ def build_series_graph(file_name, freq, time=None, stress=None, strain=None, str
         plt.clf()
 
 
-def build_summary_graph(data, names, variable='', xlab='', ylab='', title=''):
+def build_summary_graph(data, names, variable='', xlab='', ylab='', ylimit=(), to_drop=[], title=''):
     """
     This function builds a summary graph variable VS minute for each frequency for given values.
     :param data:
@@ -132,17 +132,22 @@ def build_summary_graph(data, names, variable='', xlab='', ylab='', title=''):
     path = STORAGE_PATH + 'summary/'
     types = {'peak':0, 'mechwork':1, 'temp':2}
     for experiment in names:
-        plt.plot(data[i, :, types[variable]], linewidth=1, marker='o', label=experiment[8:10])
+        i += 1
+        if i in to_drop:
+            continue
+        markers = ['o', 'v', 's', 'p', 'x', 'd', 'D', '8', 'h']
+        plt.plot(data[i-1, :, types[variable]], linewidth=1, marker=markers[i], label=str(np.round(int(experiment[8:10])/2, 1)) + ' Гц')
         plt.xlabel(xlab, fontsize=14)
         plt.ylabel(ylab, fontsize=14)
-        plt.title(title, fontsize=16)
+        #plt.title(title, fontsize=16)
+        if len(ylimit):
+            plt.ylim(ylimit)
         plt.legend(fontsize=10)
-        i += 1
     plt.savefig(path + 'mummary' + '_' + variable + '_min.png')
     plt.clf()
 
 
-def summary_graph_constructor(points_to_drop=[]):
+def summary_graph_constructor(points_to_drop=[], freqs_stress_to_drop=[], freqs_temp_to_drop=[], freqs_work_to_drop=[], minute_to_drop=[]):
     """
     """
     path = STORAGE_PATH + 'summary/'
@@ -159,35 +164,54 @@ def summary_graph_constructor(points_to_drop=[]):
     data = np.array(data)
 
     # building plots of peak, mech work and temp VS minute for each summary file
-    xlab = 'Minute'
-    ylab = 'Peak Stress, Mpa'
-    title = 'Plot for Average Peak Stress for each minute.'
-    build_summary_graph(data, variable='peak', xlab=xlab, ylab=ylab, title=title, names=names_txt)
-    ylab = 'Mechanical Work'
-    title = 'Plot for Average Mechanical Work for each minute.'
-    build_summary_graph(data, variable='mechwork', xlab=xlab, ylab=ylab, title=title, names=names_txt)
-    ylab = 'Temperature, *C'
-    title = 'Plot For Average Temperature for each minute.'
-    build_summary_graph(data, variable='temp', xlab=xlab, ylab=ylab, title=title, names=names_txt)
+    freqs = np.linspace(0, 7, num=7, endpoint=False, dtype=np.int)
+    xlab = 'Минута'
+    ylab = 'Напряжение, МПа'
+    title = 'График пика напряжения в зависимости от минуты.'
+    yl = (1.3, 1.6)
+    build_summary_graph(data, variable='peak', xlab=xlab, ylab=ylab, ylimit=yl, title=title, names=names_txt, to_drop=freqs_stress_to_drop)
+    ylab = 'Работа'
+    title = 'График Работы в зависимости от минуты.'
+    build_summary_graph(data, variable='mechwork', xlab=xlab, ylab=ylab, title=title, names=names_txt, to_drop=freqs_work_to_drop)
+    ylab = 'Температура, *C'
+    title = 'График Температуры в зависимости от минуты.'
+    yl = (19, 25)
+    build_summary_graph(data, variable='temp', xlab=xlab, ylab=ylab, ylimit=yl, title=title, names=names_txt, to_drop=freqs_temp_to_drop)
 
     # building mech work VS freq for each minute
     for i in range(len(data[0, :, 0])):
         plt.plot(data[:, i, 3]* 2 * np.pi, data[:, i, 1], linewidth=1, marker='o')
-        plt.xlabel('Frequency', fontsize=14)
-        plt.ylabel('Mechanical Work', fontsize=14)
-        plt.title('Plot for Mechanical Work versus Frequency.', fontsize=16)
+        plt.xlabel('Частота, рад/сек', fontsize=14)
+        plt.ylabel('Работа', fontsize=14)
+        plt.title('График Работы в зависимости от круговой частоты.', fontsize=16)
         plt.savefig(path + 'Mech work vs freq for ' + str(i) + ' min.png')
         plt.clf()
 
     # building mech work VS freq for each min on one plot with dropping some points
     points = np.linspace(0, len(data[:]), num=len(data[:]), endpoint=False, dtype=np.int)
+    minute = np.linspace(0, 10, num=10, endpoint=False, dtype=np.int)
     points = list(set(points) - set(points_to_drop))
-    plt.plot(data[points, :, 3] * 2 * np.pi, data[points, :, 1], linewidth=1, marker='o')
-    plt.xlabel('Frequency, Hz', fontsize=14)
-    plt.ylabel('Mechanical Work', fontsize=14)
-    plt.title('Plot for Mechanical Work versus Frequency.', fontsize=16)
-    plt.legend([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], fontsize=10)
+    minute = list(set(minute) - set(minute_to_drop))
+    legend = []
+    markers = ['o', 'v', 's', 'p', 'x', 'd', 'D', '8', 'h', 'H']
+    print(data[points,:,1])
+    for i in minute:
+        plt.plot(data[points, i, 3] * 2 * np.pi, data[points, i, 1], linewidth=1, marker=markers[i])
+        plt.xlabel('Частота, рад/сек', fontsize=14)
+        plt.ylabel('Работа', fontsize=14)
+        #plt.title('График Работы в зависимости от частоты.', fontsize=16)
+        legend.append(str(i+1) + ' мин.')
+    plt.legend(legend, fontsize=10)
     plt.savefig(path + 'Mech work vs freq ' + '.png')
+    plt.clf()
+
+    work = []
+    for w in points:
+        work.append(np.average(data[w, :, 1]))
+    plt.plot(data[points, i, 3] * 2 * np.pi, work, linewidth=1.5, color='black', marker='o')
+    plt.xlabel('Frequency (rad/s)', fontsize=14)
+    plt.ylabel('Mechanical work (MPa*Strain)', fontsize=14)
+    plt.show()
     plt.clf()
 
 
@@ -211,7 +235,7 @@ def write_results(data_to_write, freq, series_number, summary=False):
     f.close()
 
 
-def mean_summary_value(path, min_to_drop = [], col=1):
+def mean_summary_value(path, min_to_drop=[], col=1):
     min = np.linspace(0, 10, num=10, endpoint=False, dtype=np.int)
     min = list(set(min) - set(min_to_drop))
     names = os.listdir(path)
@@ -228,15 +252,27 @@ def from_rubber_to_cord_formula(angle, data_rubber, gamma=0.89):
     return data_rubber_cord
 
 
-def error_calc(data1, data2, in_percent=True):
+def error_calc(data1, data2, digits=2, in_percent=True):
     error = []
     for i in range(len(data1)):
         e = (data2[i] - data1[i]) / data1[i]
         if in_percent:
             e *= 100
-        error.append(np.round(e, 2))
+        error.append(np.round(e, digits))
     return error
 
+
+def error_calc_average(data_theory, data_exp, x_theory, in_percent=True):
+    error = 0
+    a = 0
+    for x in range(len(x_theory)):
+        error += (data_theory[x] - data_exp[x])**2
+        a += data_theory[x]/len(x_theory)
+    error = np.sqrt(error)
+    error = error / a
+    if in_percent:
+        error *= 100
+    return error
 
 def relation_f(time, params, elnum=3):
     """
@@ -264,6 +300,17 @@ def get_relaxation_f(time, params, elnum=3):
     for t in time:
         relax.append(relation_f(t, params, elnum))
     return np.array(relax)
+
+
+def work_vs_freq_function(omega, params, e_ampl, el_num):
+    mech_work = []
+    for w in omega:
+        a = 0
+        for i in range(el_num):
+            a += (params[el_num+i] * params[i] * w) / ((params[i] * w)**2 + 1)
+        a = a * np.pi * (e_ampl**2)
+        mech_work.append(a)
+    return np.array(mech_work)
 
 
 def experiment_processing(time, strain, stress, temp):
